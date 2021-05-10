@@ -1,0 +1,17 @@
+Name: "Server01"
+
+Install:
+  PackageInstallation: 
+  - php
+  - mysql-server 
+  - libapache2-mod-php
+
+#Provide Path to configuration files
+ConfigurationFiles:
+  php: "./configurations/hello.php" 
+
+Remove:
+  PackageRemoval:
+  - nginx
+
+
