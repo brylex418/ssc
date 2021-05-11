@@ -34,9 +34,14 @@ def installPackage():
     
     tmp  = dsl['Install']['PackageInstallation']
     packagesToInstall = " ".join(tmp)
-
-    InstallPackagesCommand = "sudo apt install -y %s" %(packagesToInstall)
-    apacheConfiguration = "cd /etc/apache2/sites-available; sed 's|/var/www/html/index.html|/var/www/html/index.php|' 000-default.conf; sudo systemctl restart apache2"
+    phpIndexPath = str(dsl['ConfigurationFiles']['php'])
+    phpFileOwner = dsl['PHPConfiguration']['owner']
+    phpFileGroup = dsl['PHPConfiguration']['group']
+    phpFileMode = dsl['PHPConfiguration']['mode']
+    phpTargetPath = '/var/www/html/index.php'
+    phpFileConfig = "sudo chmod %s %s; sudo chown %s:%s %s" %(phpFileMode, phpTargetPath, phpFileOwner, phpFileGroup, phpTargetPath)
+    InstallPackagesCommand = "sudo apt update -y; sudo apt install -y %s" %(packagesToInstall)
+    print("Packages Being Installed If not already %s" %(packagesToInstall))
     print('Making Remote Connection to Install packages')
     stdin, stdout,stderr = ssh_client.exec_command(InstallPackagesCommand)
     stdout = stdout.readlines()
@@ -44,24 +49,41 @@ def installPackage():
     print('Package Install Has Finished')
 
     sftp = ssh_client.open_sftp()
-    phpConfigPath = str(dsl['ConfigurationFiles']['php'])
+    defaultSiteConfig = str(dsl['ConfigurationFiles']['defaultSite'])
+ 
+    if 'nginx' in packagesToInstall:
+        print('Nginx is installed so checking config')
+        sftp.put(phpIndexPath, '/var/www/html/index.php')
+        sftp.put(defaultSiteConfig, '/etc/nginx/sites-available/default')
 
-#TODO 
+    else:
+        print('No Nginx. Move Along. Be About Your Buisness')
 
-Need to further automate the creation of Apache and serving PHP FILES
-https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mysql-php-lamp-stack-on-ubuntu-16-04
+    if str(dsl['Install']['RestartWebServices']) == "true":
+        print('You selected restart web services. Doing that')
+        stdin, stdout,stderr = ssh_client.exec_command("sudo systemctl restart nginx")
+        stdout = stdout.readlines()
+        print(stdout)
+        print('nginx restarted')
+    else:
+        print("You didn't delcare to restart services")
 
 
-
-    if 'libapache2-mod-php' in packagesToInstall:
-        print('Apache is installed so configuring it')
-        print('Copying Up To Date PHP Configuration')
-        sftp.put(phpConfigPath, '/var/www/html/index.php')
-
-    stdin, stdout,stderr = ssh_client.exec_command(apacheConfiguration)
+    stdin, stdout,stderr = ssh_client.exec_command(phpFileConfig)
     stdout = stdout.readlines()
     print(stdout)
+    print('File Mode Set On index.php')
 
+def updatePackage():
+    tmp = dsl['Install']['PackageInstallation']
+    packagesToUpgrade = " ".join(tmp)
+    
+    UpgradePackagesCommand = "sudo apt upgrade -y; sudo apt upgrade -y %s" %(packagesToUpgrade)
+    print('Making Remote Connection to Upgrade Packages')
+    stdin, stdout,stderr = ssh_client.exec_command(UpgradePackagesCommand)
+    stdout = stdout.readlines()
+    print(stdout)
+    print('Package Upgrade Has Finished')
 
 
 # function to iterate through packages to perform apt removes
@@ -78,16 +100,10 @@ def removePackage():
     print(stdout)
     print('Package Removal Has Finished')
 
-#def scpFiles():
-#
-#    sftp = ssh_client.open_sftp()
-#    phpConfigPath = dsl['ConfigurationFiles']['php'] 
-#    sftp.put(phpConfigPath, '/var/www/html/index.php')
-#    sftp.close()
 
 #TODO 
 
-Setup SystemCTL Path Watcher HERE:
+#Setup SystemCTL Path Watcher HERE:
 
 
 
@@ -97,43 +113,4 @@ Setup SystemCTL Path Watcher HERE:
 
 installPackage()
 removePackage()
-
-# function to iterate through packages to perform apt removes
-
-#def removePackage(packages):
-#    for package in packagesToRemove:
-#        os.system("sudo apt remove -y " + str(packagesToRemove))
-
-# Loads the yml file
-
-#with open('/home/ubuntu/cm/templates/onefile.yml') as file:
-#    result =yaml.safe_load(file)
-
-#Formats the List of packages and sets vars
-
-#space = " "
-
-#InstallPacks = result['Install']['PackageInstallation']
-#packagesToInstall = space.join(InstallPacks)
-
-#RemovePacks = result['Remove']['PackageRemoval']
-#packagesToRemove = space.join(RemovePacks)
-
-
-#Runs any Installs and removes
-
-#print('Beginning The Server Configurator!!')
-#print('Get READY TO BE CONFIGURED!')
-
-#InstallPackagesCommand = "sudo apt install -y %s;ls -lah" %(packagesToInstall)
-
-#RemovePackagesCommand = "sudo apt remove -y %s;ls -lah" %(packagesToRemove)
-
-#stdin, stdout,stderr = ssh_client.exec_command(InstallPackagesCommand)
-#stdout = stdout.readlines()
-#stdeout = "".join(stdout)
-#print(stdout)
-#print('Package Installation Phase has finished')
-
-#removePackage(packagesToRemove)
-
+updatePackage()

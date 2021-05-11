@@ -1,0 +1,33 @@
+Name: "LEMP"
+
+#Declares which deb packages will be installed
+Install:
+  PackageInstallation: 
+  - nginx
+  - mysql-server
+  - php-fpm
+ 
+# Accepts "true" or "false"
+
+  RestartWebServices: "true"
+
+#These configuration files will be used in web server configuration
+#Nginx / PHP is declarative configured. If you need to make an update to the PHP or nginx config please do so in the following files and re-run deploy.
+ConfigurationFiles:
+  php: "./configurations/index.php"
+  defaultSite: "./configurations/defaultSite" 
+
+
+#Declares PHP File Configuration Permissions
+PHPConfiguration:
+  owner: "root"
+  group: "root"
+  mode: "644"
+
+
+#Declares which deb packages will be removed
+Remove:
+  PackageRemoval:
+  - apache2
+
+
