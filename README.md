@@ -1,5 +1,5 @@
 # ssc
-simple server configurator that installs / removes deb packages and configures a webserver.
+simple server configurator(ssc) that installs / removes deb packages and configures a webserver.
 
 
 # Directory Manifest:
@@ -20,12 +20,13 @@ This is where the python that does all of the work lives
 
 # Setup:
 
-1. Begin with running bootstrap.sh on your ubuntu system. This script will install the necessary bits and set some aliases to use the program. 
+1. Begin with running bootstrap.sh on your ubuntu system. This script will install the necessary bits and set some aliases to use ssc. 
 2. Setup your inventory. Place your SSH credentials inside of a yaml file. Using inventory/host01.yml as an example 
 
 # Running:
 
-Use the below command as a template for how to run the program. 
+Use the below command as a template for how to run ssc. 
 
 ```ssc hostconfigs/lemp.yml inventory/host01.yml```
 
+NOTE: Be sure to run ssc with the arguments in the order above.
