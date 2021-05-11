@@ -1,5 +1,4 @@
 #!/bin/bash
-shopt -s expand_aliases
 
 echo "Installing pip"
 
