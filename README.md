@@ -1,5 +1,5 @@
 # ssc
-simple server configurator that installs / removes deb packages.
+simple server configurator that installs / removes deb packages and configures a webserver.
 
 
 # Directory Manifest:
