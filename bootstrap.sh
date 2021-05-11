@@ -11,3 +11,5 @@ echo "Installing some python packages"
 sudo apt install -y python3-paramiko
 
 echo "Setting up SSC tool"
+
+alias ssc="python3 src/allthings.py"
