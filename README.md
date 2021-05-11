@@ -21,7 +21,14 @@ This is where the python that does all of the work lives
 # Setup:
 
 1. Begin with running bootstrap.sh on your ubuntu system. This script will install the necessary bits and set some aliases to use ssc. 
+   ```source bootstrap.sh``` 
 2. Setup your inventory. Place your SSH credentials inside of a yaml file. Using inventory/host01.yml as an example 
+
+```
+host: "X.X.X.X" -- IP ADDRESS GOES HERE
+username: "root" -- USERNAME GOES HERE
+password: "XXXXXXXXXXX" -- PASSWORD GOES HERE
+```
 
 # Running:
 
