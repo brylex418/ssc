@@ -5,12 +5,12 @@ import sys
 import filecmp
 
 
-# DSL YAML
+# HostConfig YAML
 
 with open(sys.argv[1]) as file:
         dsl = yaml.safe_load(file)
 
-# Host YAML BELOW
+# Inventory YAML BELOW
 
 with open(sys.argv[2]) as file:
         hosts = yaml.safe_load(file)
