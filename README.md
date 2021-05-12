@@ -37,3 +37,4 @@ Use the below command as a template for how to run ssc.
 ```ssc hostconfigs/lemp.yml inventory/host01.yml```
 
 NOTE: Be sure to run ssc with the arguments in the order above.
+NOTE2: Be Sure to run ssc from root of ssc directory
