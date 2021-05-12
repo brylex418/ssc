@@ -2,6 +2,7 @@ import os
 import yaml
 import paramiko
 import sys
+import filecmp
 
 
 # DSL YAML
@@ -39,6 +40,9 @@ def installPackage():
     phpFileGroup = dsl['PHPConfiguration']['group']
     phpFileMode = dsl['PHPConfiguration']['mode']
     phpTargetPath = '/var/www/html/index.php'
+    localPHPtmp = './existingPHP'
+    candidatePHP = './configurations/index.php'
+    defaultSitePath = '/etc/nginx/sites-available/default'
     phpFileConfig = "sudo chmod %s %s; sudo chown %s:%s %s" %(phpFileMode, phpTargetPath, phpFileOwner, phpFileGroup, phpTargetPath)
     InstallPackagesCommand = "sudo apt update -y; sudo apt install -y %s" %(packagesToInstall)
     print("Packages Being Installed If not already %s" %(packagesToInstall))
@@ -50,23 +54,36 @@ def installPackage():
 
     sftp = ssh_client.open_sftp()
     defaultSiteConfig = str(dsl['ConfigurationFiles']['defaultSite'])
- 
+    
+    try:
+        sftp.get(phpTargetPath, localPHPtmp)
+    except:
+        print("File isn't in place yet")
+
+    fileCheck = filecmp.cmp(localPHPtmp, candidatePHP)
+
     if 'nginx' in packagesToInstall:
         print('Nginx is installed so checking config')
-        sftp.put(phpIndexPath, '/var/www/html/index.php')
-        sftp.put(defaultSiteConfig, '/etc/nginx/sites-available/default')
+        sftp.put(phpIndexPath, phpTargetPath)
+        sftp.put(defaultSiteConfig, defaultSitePath)
 
     else:
         print('No Nginx. Move Along. Be About Your Buisness')
 
-    if str(dsl['Install']['RestartWebServices']) == "true":
-        print('You selected restart web services. Doing that')
+    if fileCheck == False:
+        sftp.put(phpIndexPath, phpTargetPath)
+    else:
+        print("Up To Date PHP Is Already Deployed")
+
+
+    if str(dsl['Install']['RestartWebServices']) == "true" and fileCheck == False:
+        print('You selected restart web services. Doing that if needed')
         stdin, stdout,stderr = ssh_client.exec_command("sudo systemctl restart nginx")
         stdout = stdout.readlines()
         print(stdout)
         print('nginx restarted')
     else:
-        print("You didn't delcare to restart services")
+        print("You didn't delcare to restart services, or it's not needed")
 
 
     stdin, stdout,stderr = ssh_client.exec_command(phpFileConfig)
@@ -77,13 +94,16 @@ def installPackage():
 def updatePackage():
     tmp = dsl['Install']['PackageInstallation']
     packagesToUpgrade = " ".join(tmp)
-    
+    phpCandidatePath ='./configurations/index.php'
+
     UpgradePackagesCommand = "sudo apt upgrade -y; sudo apt upgrade -y %s" %(packagesToUpgrade)
     print('Making Remote Connection to Upgrade Packages')
     stdin, stdout,stderr = ssh_client.exec_command(UpgradePackagesCommand)
     stdout = stdout.readlines()
     print(stdout)
     print('Package Upgrade Has Finished')
+
+    
 
 
 # function to iterate through packages to perform apt removes
@@ -101,14 +121,6 @@ def removePackage():
     print('Package Removal Has Finished')
 
 
-#TODO 
-
-#Setup SystemCTL Path Watcher HERE:
-
-
-
-
-# Function Calls
 
 
 installPackage()
