@@ -40,8 +40,9 @@ def installPackage():
     phpFileGroup = dsl['PHPConfiguration']['group']
     phpFileMode = dsl['PHPConfiguration']['mode']
     phpTargetPath = '/var/www/html/index.php'
-    localPHPtmp = './existingPHP'
+    localSiteConfig = './existingSiteConfig'
     candidatePHP = './configurations/index.php'
+    candidateSiteConfig = './configurations/defaultSite'
     defaultSitePath = '/etc/nginx/sites-available/default'
     phpFileConfig = "sudo chmod %s %s; sudo chown %s:%s %s" %(phpFileMode, phpTargetPath, phpFileOwner, phpFileGroup, phpTargetPath)
     InstallPackagesCommand = "sudo apt update -y; sudo apt install -y %s" %(packagesToInstall)
@@ -56,11 +57,11 @@ def installPackage():
     defaultSiteConfig = str(dsl['ConfigurationFiles']['defaultSite'])
     
     try:
-        sftp.get(phpTargetPath, localPHPtmp)
+        sftp.get(defaultSitePath, localSiteConfig)
     except:
         print("File isn't in place yet")
 
-    fileCheck = filecmp.cmp(localPHPtmp, candidatePHP)
+    fileCheck = filecmp.cmp(localSiteConfig, candidateSiteConfig)
 
     if 'nginx' in packagesToInstall:
         print('Nginx is installed so checking config')
@@ -85,6 +86,14 @@ def installPackage():
     else:
         print("You didn't delcare to restart services, or it's not needed")
 
+    #Restart Services Anyway 
+
+    if str(dsl['Install']['RestartWebServices']) == "true":
+        print('You have selected restart web services. So doing it even if nothing has changed')
+        stdin, stdout,stderr = ssh_client.exec_command("sudo systemctl restart nginx")
+        stdout = stdout.readlines()
+        print(stdout)
+        print('nginx restarted')
 
     stdin, stdout,stderr = ssh_client.exec_command(phpFileConfig)
     stdout = stdout.readlines()
